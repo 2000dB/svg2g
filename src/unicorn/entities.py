@@ -1,5 +1,4 @@
-from math import cos, sin, radians
-import pprint
+from math import cos, sin
 
 class Entity:
 	def get_gcode(self,context):

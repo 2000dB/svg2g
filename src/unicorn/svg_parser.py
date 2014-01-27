@@ -1,9 +1,7 @@
-import inkex, cubicsuperpath, simplepath, simplestyle, cspsubdiv
+import inkex, cubicsuperpath, simplepath, cspsubdiv
 from simpletransform import *
 from bezmisc import *
 import entities
-from math import radians
-import sys, pprint
 
 def parseLengthWithUnits( str ):
   '''
