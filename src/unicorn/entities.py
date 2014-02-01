@@ -11,7 +11,7 @@ class Line(Entity):
 	def __str__(self):
 		return 'Line from [%.2f, %.2f] to [%.2f, %.2f]' % (self.start[0], self.start[1], self.end[0], self.end[1])
 
-	def get_gcode(self,context):
+	def get_gcode(self, context):
 		"""
         Emit gcode for drawing line
         """
@@ -24,7 +24,7 @@ class Circle(Entity):
 	def __str__(self):
 		return 'Circle at [%.2f,%.2f], radius %.2f' % (self.center[0], self.center[1], self.radius)
 
-	def get_gcode(self,context):
+	def get_gcode(self, context):
 		"""
         Emit gcode for drawing arc
         """
@@ -42,7 +42,7 @@ class Arc(Entity):
 	def __str__(self):
 		return 'Arc at [%.2f, %.2f], radius %.2f, from %.2f to %.2f' % (self.center[0], self.center[1], self.radius, self.start_angle, self.end_angle)
 
-	def find_point(self,proportion):
+	def find_point(self, proportion):
 		"""
         Find point at the given proportion along the arc.
         """
@@ -51,7 +51,7 @@ class Arc(Entity):
 		
 		return (self.center[0] + self.radius*cos(angle), self.center[1] + self.radius*sin(angle))
 
-	def get_gcode(self,context):
+	def get_gcode(self, context):
 		"""
         Emit gcode for drawing arc
         """
@@ -67,7 +67,7 @@ class Arc(Entity):
 		arc_code = arc_code + ' X%.2f Y%.2f I%.2f J%.2f F%.2f' % (end[0], end[1], self.center[0] - start[0], self.center[1] - start[1], context.xy_feedrate)
 
 		context.codes.append('(' + str(self) + ')')
-		context.go_to_point(start[0],start[1])
+		context.go_to_point(start[0], start[1])
 		context.last = end
 		context.start()
 		context.codes.append(arc_code)

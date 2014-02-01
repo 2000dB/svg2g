@@ -2,7 +2,7 @@
 
 import inkex
 
-from unicorn.context import GCodeContext
+from unicorn.context import GCodeConfig, GCodeContext
 from unicorn.svg_parser import SvgParser
 
 class MyEffect(inkex.Effect):
@@ -115,7 +115,7 @@ class MyEffect(inkex.Effect):
         self.context.generate()
 
     def effect(self):
-        self.context = GCodeContext(
+        config = GCodeConfig(
             self.options.xy_feedrate, self.options.z_feedrate, 
             self.options.start_delay, self.options.stop_delay,
             self.options.pen_up_angle, self.options.pen_down_angle,
@@ -125,6 +125,8 @@ class MyEffect(inkex.Effect):
             self.options.num_copies,
             self.options.continuous,
             self.svg_file)
+
+        self.context = GCodeContext(config)
 
         parser = SvgParser(self.document.getroot(), self.options.pause_on_layer_change)
         parser.parse()
