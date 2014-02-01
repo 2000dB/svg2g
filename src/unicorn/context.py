@@ -3,6 +3,9 @@
 import sys
 
 class GCodeConfig(dict):
+    """
+    Dictionary wrapper around required GCode configuration.
+    """
     def __init__(self, xy_feedrate, z_feedrate, start_delay, stop_delay, pen_up_angle, pen_down_angle, z_height, finished_height, x_home, y_home, register_pen, num_pages, continuous, filename):
         self['xy_feedrate'] = xy_feedrate
         self['z_feedrate'] = z_feedrate
@@ -94,40 +97,6 @@ class GCodeContext:
 
         self.codes = []
 
-    def generate(self):
-        """
-        Output compiled Godee to console. 
-        """
-        if self.config['continuous'] == 'true':
-            self.config['num_pages'] = 1
-
-        codesets = [self.preamble]
-
-        if (self.config['continuous'] == 'true' or self.config['num_pages'] > 1):
-            codesets.append(self.sheet_header)
-        elif self.config['register_pen'] == 'true':
-            codesets.append(self.registration)
-        
-        codesets.append(self.codes)
-        
-        if (self.config['continuous'] == 'true' or self.config['num_pages'] > 1):
-            codesets.append(self.sheet_footer)
-
-        if self.config['continuous'] == 'true':
-            codesets.append(self.loop_forever)
-
-            for codeset in codesets:
-                for line in codeset:
-                    print line
-        else:
-            for p in range(0, self.config['num_pages']):
-                for codeset in codesets:
-                    for line in codeset:
-                        print line
-
-                for line in self.postscript:
-                    print line
-
     def start(self):
         """
         Start drawing.
@@ -174,3 +143,39 @@ class GCodeContext:
         self.codes.append('G1 X%0.2f Y%0.2f F%0.2f' % (x, y, self.config.xy_feedrate))
 
         self.last = (x, y)
+
+    def generate(self):
+        """
+        Output compiled Godee to console. 
+        """
+        if self.config['continuous'] == 'true':
+            self.config['num_pages'] = 1
+
+        codesets = [self.preamble]
+
+        if (self.config['continuous'] == 'true' or self.config['num_pages'] > 1):
+            codesets.append(self.sheet_header)
+        elif self.config['register_pen'] == 'true':
+            codesets.append(self.registration)
+        
+        codesets.append(self.codes)
+        
+        if (self.config['continuous'] == 'true' or self.config['num_pages'] > 1):
+            codesets.append(self.sheet_footer)
+
+        if self.config['continuous'] == 'true':
+            codesets.append(self.loop_forever)
+
+            for codeset in codesets:
+                for line in codeset:
+                    print line
+        else:
+            for p in range(0, self.config['num_pages']):
+                for codeset in codesets:
+                    for line in codeset:
+                        print line
+
+                for line in self.postscript:
+                    print line
+
+
