@@ -7,185 +7,6 @@ import inkex
 import simplepath
 from simpletransform import *
 
-import entities
-
-class SvgParser(object):
-    """
-    Parses an SVG.
-    """
-    entity_map = {
-        'path': SvgPath,
-        'rect': SvgRect,
-        'line': SvgLine,
-        'polyline': SvgPolyLine,
-        'polygon': SvgPolyLine,
-        'circle': SvgCircle,
-        'ellipse': SvgEllipse,
-        'pattern': SvgIgnored,
-        'metadata': SvgIgnored,
-        'defs': SvgIgnored,
-        'eggbot': SvgIgnored,
-        ('namedview', 'sodipodi'): SvgIgnored,
-        'text': SvgText
-    }
-
-    def __init__(self, svg, pause_on_layer_change='false'):
-        self.svg = svg
-        self.pause_on_layer_change = pause_on_layer_change
-        self.entities = []
-
-    def parseLengthWithUnits(attr):
-        """ 
-        Parse an SVG value which may or may not have units attached
-        This version is greatly simplified in that it only allows: no units,
-        units of px, and units of %.    Everything else, it returns None for.
-        There is a more general routine to consider in scour.py if more
-        generality is ever needed.
-        """
-        unit = 'px'
-        attr = attr.strip()
-
-        if attr[-2:] == 'px':
-            attr = attr[:-2]
-        elif attr[-1:] == '%':
-            unit = '%'
-            attr = attr[:-1]
-        
-        try:
-            value = float(attr)
-        except:
-            return None, None
-        
-        return value, unit
-
-    def getLength(self, name, default):
-        """ 
-        Get the <svg> attribute with name "name" and default value "default"
-        Parse the attribute into a value and associated units.    Then, accept
-        no units (''), units of pixels ('px'), and units of percentage ('%').
-        """
-        attr = self.svg.get(name)
-        
-        if attr:
-            value, unit = self.parseLengthWithUnits(attr)
-            
-            if not value:
-                # Couldn't parse the value
-                return None
-            elif (unit == '') or (unit == 'px' ):
-                return value
-            elif unit == '%':
-                return float(default) * v / 100.0
-            else:
-                # Unsupported units
-                return None
-        else:
-            # No width specified; assume the default value
-            return float(default)
-
-    def parse(self):
-        """
-        Parse the SVG data into entities.
-        """
-        # 0.28222 scale determined by comparing pixels-per-mm in a default Inkscape file.
-        width = self.getLength('width', 354) * 0.28222
-        height = self.getLength('height', 354) * 0.28222
-
-        self.recursivelyTraverseSvg(
-            self.svg,
-            [
-                [0.28222, 0.0, -(width / 2.0)],
-                [0.0, -0.28222, (height / 2.0)]
-            ])
-
-    # TODO: center this thing
-    def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):
-        """
-        Recursively traverse the svg file to plot out all of the
-        paths.    The function keeps track of the composite transformation
-        that should be applied to each path.
-
-        This function handles path, group, line, rect, polyline, polygon,
-        circle, ellipse and use (clone) elements. Notable elements not
-        handled include text.    Unhandled elements should be converted to
-        paths in Inkscape.
-
-        TODO: There's a lot of inlined code in the eggbot version of this
-        that would benefit from the Entities method of dealing with things.
-        """
-        for node in nodeList:
-            # Ignore invisible nodes
-            node_visiblity = node.get('visibility', parent_visibility)
-
-            if node_visibility == 'inherit':
-                node_visiblity = parent_visibility
-
-            if node_visibility == 'hidden' or node_visiblity == 'collapse':
-                pass
-
-            # Apply the current matrix transform to this node's transform
-            node_transform = composeTransform(current_transform, parseTransform(node.get('transform')))
-
-            # Root and group tags
-            if node.tag == inkex.addNS('g', 'svg') or node.tag == 'g':
-                if (node.get(inkex.addNS('groupmode', 'inkscape')) == 'layer'):
-                    layer_name = node.get(inkex.addNS('label', 'inkscape'))
-                    
-                    if(self.pause_on_layer_change == 'true'):
-                        self.entities.append(SvgLayerChange(layer_name))
-                
-                self.recursivelyTraverseSvg(node, node_transform, parent_visibility=node_visibility)
-            # Use tags
-            elif node.tag == inkex.addNS('use', 'svg') or node.tag == 'use':
-                refid = node.get(inkex.addNS('href', 'xlink'))
-                
-                if refid:
-                    # [1:] to ignore leading '#' in reference
-                    path = '//*[@id="%s"]' % refid[1:]
-                    refnode = node.xpath(path)
-                    
-                    if refnode:
-                        x = float(node.get('x', '0'))
-                        y = float(node.get('y', '0'))
-                        
-                        if (x != 0) or (y != 0):
-                            node_transform = composeTransform(node_transform, parseTransform('translate(%f,%f)' % (x, y)))
-                        
-                        # TODO: this looks unnecessary
-                        node_visibility = node.get('visibility', node_visiblity)
-
-                        self.recursivelyTraverseSvg(refnode, node_transform, parent_visibility=node_visibility)
-            elif not isinstance(node.tag, basestring):
-                pass
-            # Entity tags
-            else:
-                entity = self.make_entity(node, matNew)
-                
-                if entity == None:
-                    inkex.errormsg('Warning: unable to draw object, please convert it to a path first.')
-
-    def make_entity(self, node, node_transform):
-        """
-        Construct an appropriate entity for this SVG node.
-        """
-        for nodetype in SvgParser.entity_map.keys():
-            tag = nodetype
-            ns = 'svg'
-            
-            if type(tag) is tuple:
-                tag = nodetype[0]
-                ns = nodetype[1]
-            
-            if node.tag == inkex.addNS(tag, ns) or node.tag == tag:
-                cls = SvgParser.entity_map[nodetype]
-
-                entity = cls(node, node_transform)
-                self.entities.append(entity)
-                
-                return entity
-        
-        return None
-
 class SvgEntity(object):
     """
     Base class for SVG entities.
@@ -441,4 +262,182 @@ class SvgLayerChange(SvgEntity):
 
     def get_gcode(self,context):
         context.codes.append('M01 (Plotting layer "%s")' % self.layer_name)
+
+class SvgParser(object):
+    """
+    Parses an SVG.
+    """
+    entity_map = {
+        'path': SvgPath,
+        'rect': SvgRect,
+        'line': SvgLine,
+        'polyline': SvgPolyLine,
+        'polygon': SvgPolyLine,
+        'circle': SvgCircle,
+        'ellipse': SvgEllipse,
+        'pattern': SvgIgnored,
+        'metadata': SvgIgnored,
+        'defs': SvgIgnored,
+        'eggbot': SvgIgnored,
+        ('namedview', 'sodipodi'): SvgIgnored,
+        'text': SvgText
+    }
+
+    def __init__(self, svg, pause_on_layer_change='false'):
+        self.svg = svg
+        self.pause_on_layer_change = pause_on_layer_change
+        self.entities = []
+
+    def parseLengthWithUnits(self, attr):
+        """ 
+        Parse an SVG value which may or may not have units attached
+        This version is greatly simplified in that it only allows: no units,
+        units of px, and units of %.    Everything else, it returns None for.
+        There is a more general routine to consider in scour.py if more
+        generality is ever needed.
+        """
+        unit = 'px'
+        attr = attr.strip()
+
+        if attr[-2:] == 'px':
+            attr = attr[:-2]
+        elif attr[-1:] == '%':
+            unit = '%'
+            attr = attr[:-1]
+        
+        try:
+            value = float(attr)
+        except:
+            return None, None
+        
+        return value, unit
+
+    def getLength(self, name, default):
+        """ 
+        Get the <svg> attribute with name "name" and default value "default"
+        Parse the attribute into a value and associated units.    Then, accept
+        no units (''), units of pixels ('px'), and units of percentage ('%').
+        """
+        attr = self.svg.get(name)
+        
+        if attr:
+            value, unit = self.parseLengthWithUnits(attr)
+            
+            if not value:
+                # Couldn't parse the value
+                return None
+            elif (unit == '') or (unit == 'px' ):
+                return value
+            elif unit == '%':
+                return float(default) * v / 100.0
+            else:
+                # Unsupported units
+                return None
+        else:
+            # No width specified; assume the default value
+            return float(default)
+
+    def parse(self):
+        """
+        Parse the SVG data into entities.
+        """
+        # 0.28222 scale determined by comparing pixels-per-mm in a default Inkscape file.
+        width = self.getLength('width', 354) * 0.28222
+        height = self.getLength('height', 354) * 0.28222
+
+        self.recursivelyTraverseSvg(
+            self.svg,
+            [
+                [0.28222, 0.0, -(width / 2.0)],
+                [0.0, -0.28222, (height / 2.0)]
+            ])
+
+    # TODO: center this thing
+    def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):
+        """
+        Recursively traverse the svg file to plot out all of the
+        paths.    The function keeps track of the composite transformation
+        that should be applied to each path.
+
+        This function handles path, group, line, rect, polyline, polygon,
+        circle, ellipse and use (clone) elements. Notable elements not
+        handled include text.    Unhandled elements should be converted to
+        paths in Inkscape.
+
+        TODO: There's a lot of inlined code in the eggbot version of this
+        that would benefit from the Entities method of dealing with things.
+        """
+        for node in nodeList:
+            # Ignore invisible nodes
+            node_visibility = node.get('visibility', parent_visibility)
+
+            if node_visibility == 'inherit':
+                node_visibility = parent_visibility
+
+            if node_visibility == 'hidden' or node_visibility == 'collapse':
+                pass
+
+            # Apply the current matrix transform to this node's transform
+            node_transform = composeTransform(current_transform, parseTransform(node.get('transform')))
+
+            # Root and group tags
+            if node.tag == inkex.addNS('g', 'svg') or node.tag == 'g':
+                if (node.get(inkex.addNS('groupmode', 'inkscape')) == 'layer'):
+                    layer_name = node.get(inkex.addNS('label', 'inkscape'))
+                    
+                    if(self.pause_on_layer_change == 'true'):
+                        self.entities.append(SvgLayerChange(layer_name))
+                
+                self.recursivelyTraverseSvg(node, node_transform, parent_visibility=node_visibility)
+            # Use tags
+            elif node.tag == inkex.addNS('use', 'svg') or node.tag == 'use':
+                refid = node.get(inkex.addNS('href', 'xlink'))
+                
+                if refid:
+                    # [1:] to ignore leading '#' in reference
+                    path = '//*[@id="%s"]' % refid[1:]
+                    refnode = node.xpath(path)
+                    
+                    if refnode:
+                        x = float(node.get('x', '0'))
+                        y = float(node.get('y', '0'))
+                        
+                        if (x != 0) or (y != 0):
+                            node_transform = composeTransform(node_transform, parseTransform('translate(%f,%f)' % (x, y)))
+                        
+                        # TODO: this looks unnecessary
+                        node_visibility = node.get('visibility', node_visibility)
+
+                        self.recursivelyTraverseSvg(refnode, node_transform, parent_visibility=node_visibility)
+            elif not isinstance(node.tag, basestring):
+                pass
+            # Entity tags
+            else:
+                entity = self.make_entity(node, node_transform)
+                
+                if entity == None:
+                    inkex.errormsg('Warning: unable to draw object, please convert it to a path first.')
+
+    def make_entity(self, node, node_transform):
+        """
+        Construct an appropriate entity for this SVG node.
+        """
+        for nodetype in SvgParser.entity_map.keys():
+            tag = nodetype
+            ns = 'svg'
+            
+            if type(tag) is tuple:
+                tag = nodetype[0]
+                ns = nodetype[1]
+            
+            if node.tag == inkex.addNS(tag, ns) or node.tag == tag:
+                cls = SvgParser.entity_map[nodetype]
+
+                entity = cls(node, node_transform)
+                self.entities.append(entity)
+                
+                return entity
+        
+        return None
+
 

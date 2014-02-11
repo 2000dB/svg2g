@@ -126,7 +126,7 @@ class GCodeContext:
             if self.drawing: 
                 self.stop();
 
-            self.codes.append('G1 X%.2f Y%.2f F%.2f' % (x, y, self.config.xy_feedrate))
+            self.codes.append('G1 X%.2f Y%.2f F%.2f' % (x, y, self.config['xy_feedrate']))
 
         self.last = (x, y)
 
@@ -140,7 +140,7 @@ class GCodeContext:
         if self.drawing == False:
             self.start()
 
-        self.codes.append('G1 X%0.2f Y%0.2f F%0.2f' % (x, y, self.config.xy_feedrate))
+        self.codes.append('G1 X%0.2f Y%0.2f F%0.2f' % (x, y, self.config['xy_feedrate']))
 
         self.last = (x, y)
 
