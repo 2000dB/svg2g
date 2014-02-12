@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-from lib import inkex
+import optparse
+import sys
+
+from lxml import etree
 
 from unicorn.context import GCodeContext
 from unicorn.svg_parser import SvgParser
 
-class MyEffect(inkex.Effect):
+class Unicorn(object):
     def __init__(self):
-        inkex.Effect.__init__(self)
+        self.OptionParser = optparse.OptionParser(usage="usage: %prog [options] SVGfile")
 
         self.OptionParser.add_option('--pen-up-angle',
             action='store',
@@ -111,18 +114,36 @@ class MyEffect(inkex.Effect):
             type='string',
             dest='tab')
 
+        self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
+
     def output(self):
         self.context.generate()
+
+    def parse(self, path):
+        try:
+            stream = open(path, 'r')
+        except:
+            stream = sys.stdin
+
+        document = etree.parse(stream)
+
+        stream.close()
+
+        return document
 
     def effect(self):
         self.context = GCodeContext(self.options)
 
-        parser = SvgParser(self.document.getroot(), self.options.pause_on_layer_change)
+        document = self.parse(sys.argv[-1]) 
+
+        parser = SvgParser(document.getroot(), self.options.pause_on_layer_change)
         parser.parse()
 
         for entity in parser.entities:
             entity.get_gcode(self.context)
 
+        self.context.generate()
+
 if __name__ == '__main__': 
-    e = MyEffect()
-    e.affect()
+    e = Unicorn()
+    e.effect()
