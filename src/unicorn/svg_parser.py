@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from bezmisc import *
-import cspsubdiv
-import cubicsuperpath
-import inkex
-import simplepath
-from simpletransform import *
+from lib import bezmisc 
+from lib import cspsubdiv
+from lib import cubicsuperpath
+from lib import inkex
+from lib import simplepath
+from lib import simpletransform
 
 class SvgEntity(object):
     """
@@ -43,7 +43,7 @@ class SvgPath(SvgEntity):
             return
         
         p = cubicsuperpath.parsePath(d)
-        applyTransformToPath(node_transform, p)
+        simpletransform.applyTransformToPath(node_transform, p)
 
         # p is now a list of lists of cubic beziers [ctrl p1, ctrl p2, endpoint]
         # where the start-point is the last point in the previous segment
@@ -106,7 +106,7 @@ class SvgPath(SvgEntity):
 
                 i += 1
 
-            one, two = beziersplitatt(b, 0.5)
+            one, two = bezmisc.beziersplitatt(b, 0.5)
             sp[i - 1][2] = one[1]
             sp[i][0] = two[2]
             p = [one[2], one[3], two[1]]
@@ -155,7 +155,7 @@ class SvgLine(SvgPath):
     An SVG entity that renders a line.
     """
     def __init__(self, node, node_transform):
-        newpath = new_path_from_node(node)
+        newpath = self.new_path_from_node(node)
 
         x1 = float(node.get('x1'))
         y1 = float(node.get('y1'))
@@ -175,7 +175,7 @@ class SvgPolyLine(SvgPath):
     An SVG entity that renders as a segmented line.
     """
     def __init__(self, node, node_transform):
-        newpath = new_path_from_node(node)
+        newpath = self.new_path_from_node(node)
         pl = node.get('points', '').strip()
 
         if pl == '':
@@ -207,7 +207,7 @@ class SvgEllipse(SvgPath):
         
         SvgPath.__init__(self, newpath, node_transform)
 
-    def make_ellipse_path(rx, ry, node):
+    def make_ellipse_path(self, rx, ry, node):
         if rx == 0 or ry == 0:
             return None
         
@@ -223,7 +223,7 @@ class SvgEllipse(SvgPath):
             'A %f,%f ' % (rx, ry) + \
             '0 1 0 %f,%f' % (x1, cy)
 
-        newpath = new_path_from_node(node)
+        newpath = self.new_path_from_node(node)
         newpath.set('d', d)
 
         return newpath
@@ -329,7 +329,7 @@ class SvgParser(object):
             elif (unit == '') or (unit == 'px' ):
                 return value
             elif unit == '%':
-                return float(default) * v / 100.0
+                return float(default) * value / 100.0
             else:
                 # Unsupported units
                 return None
@@ -378,7 +378,7 @@ class SvgParser(object):
                 pass
 
             # Apply the current matrix transform to this node's transform
-            node_transform = composeTransform(current_transform, parseTransform(node.get('transform')))
+            node_transform = simpletransform.composeTransform(current_transform, simpletransform.parseTransform(node.get('transform')))
 
             # Root and group tags
             if node.tag == inkex.addNS('g', 'svg') or node.tag == 'g':
@@ -403,7 +403,7 @@ class SvgParser(object):
                         y = float(node.get('y', '0'))
                         
                         if (x != 0) or (y != 0):
-                            node_transform = composeTransform(node_transform, parseTransform('translate(%f,%f)' % (x, y)))
+                            node_transform = simpletransform.composeTransform(node_transform, simpletransform.parseTransform('translate(%f,%f)' % (x, y)))
                         
                         # TODO: this looks unnecessary
                         node_visibility = node.get('visibility', node_visibility)

@@ -1,6 +1,8 @@
 MakerBot Unicorn G-Code Output for Inkscape
 ===========================================
 
+**NOTE:** This code has been heavily modified by [Christopher Groskopf](http://github.com/onyxfish) and this README is currently out of date. Files in `src/lib` are from the Inkscape distribution and contain their own licenses.
+
 This is an Inkscape extension that allows you to save your Inkscape drawings as
 G-Code files suitable for plotting with the [MakerBot Unicorn Pen Plotter](http://store.makerbot.com/makerbot-unicorn-pen-plotter-kit.html).
 

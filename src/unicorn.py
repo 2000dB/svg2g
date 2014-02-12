@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import inkex
+from lib import inkex
 
 from unicorn.context import GCodeContext
 from unicorn.svg_parser import SvgParser
