@@ -69,8 +69,9 @@ class SvgPath(SvgEntity):
         is approximately a straight line within a given tolerance
         (the "smoothness" defined by [flat]).
 
-        This is a modified version of cspsubdiv.cspsubdiv(). I rewrote the recursive
-        call because it caused recursion-depth errors on complicated line segments.
+        This is a modified version of Inkscape's cspsubdiv.cspsubdiv().
+        The recursive call has been rewritten because it caused
+        recursion-depth errors on complicated line segments.
         """
         while True:
             while True:
