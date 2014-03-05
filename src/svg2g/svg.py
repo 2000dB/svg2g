@@ -3,8 +3,8 @@
 from lxml import etree
 
 from lib import bezmisc 
-from lib import cspsubdiv
 from lib import cubicsuperpath
+from lib import ffgeom
 from lib import inkex
 from lib import simplepath
 from lib import simpletransform
@@ -44,14 +44,26 @@ class SvgPath(SvgEntity):
         
         for sp in p:
             points = []
-            self.subdivideCubicPath(sp, 0.2)    # TODO: smoothness preference
+            self._subdivide_cubic_path(sp, 0.2)    # TODO: smoothness preference
             
             for csp in sp:
                 points.append((csp[1][0], csp[1][1]))
             
             self.segments.append(points)
 
-    def subdivideCubicPath(self, sp, flat, i=1):
+    def _compute_max_distance(self, points):
+        ((p0x,p0y), (p1x,p1y), (p2x,p2y), (p3x,p3y)) = points
+
+        p0 = ffgeom.Point(p0x,p0y)
+        p1 = ffgeom.Point(p1x,p1y)
+        p2 = ffgeom.Point(p2x,p2y)
+        p3 = ffgeom.Point(p3x,p3y)
+
+        s1 = ffgeom.Segment(p0,p3)
+
+        return max(s1.distanceToPoint(p1), s1.distanceToPoint(p2))
+
+    def _subdivide_cubic_path(self, sp, flat, i=1):
         """
         Break up a bezier curve into smaller curves, each of which
         is approximately a straight line within a given tolerance
@@ -72,7 +84,7 @@ class SvgPath(SvgEntity):
 
                 b = (p0, p1, p2, p3)
 
-                if cspsubdiv.maxdist(b) > flat:
+                if self._compute_max_distance(b) > flat:
                     break
 
                 i += 1
