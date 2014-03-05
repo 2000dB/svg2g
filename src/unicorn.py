@@ -118,11 +118,6 @@ class Unicorn(object):
             default='false',
             help='Pause on layer changes.')
 
-        self.OptionParser.add_option('--tab',
-            action='store',
-            type='string',
-            dest='tab')
-
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
     def parse_xml(self, path):
