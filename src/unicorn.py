@@ -126,7 +126,7 @@ class Unicorn(object):
 
         document = self.parse(sys.argv[-1]) 
 
-        parser = SvgParser(document.getroot(), self.options.pause_on_layer_change)
+        parser = SvgParser(document.getroot())
         parser.parse()
 
         for entity in parser.entities:

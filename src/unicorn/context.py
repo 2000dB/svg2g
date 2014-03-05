@@ -51,9 +51,6 @@ class GCodeBuilder:
             'G92 X%(x_home).2f Y%(y_home).2f Z%(z_height).2f (you are here)' % self.config,
         ]
 
-        if self.config['register_pen'] == 'true':
-            self.sheet_header.extend(self.registration)
-
         self.sheet_header.append('(/sheet header)')
 
         self.sheet_footer = [
@@ -151,7 +148,8 @@ class GCodeBuilder:
         """
         Change layer being drawn.
         """
-        self.codes.append('M01 (Plotting layer "%s")' % name)
+        if self.config['pause_on_layer_change']:
+            self.codes.append('M01 (Plotting layer "%s")' % name)
 
     def build(self):
         """
