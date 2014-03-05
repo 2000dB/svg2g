@@ -8,7 +8,7 @@ from lxml import etree
 from svg2g.gcode import GCodeBuilder
 from svg2g.svg import SvgLayerChange, SvgParser, SvgPath
 
-class Unicorn(object):
+class Svg2G(object):
     def __init__(self):
         """
         Setup GCode writer and SVG parser.
@@ -166,5 +166,5 @@ class Unicorn(object):
         sys.stdout.write(self.gcode.build())
 
 if __name__ == '__main__': 
-    e = Unicorn()
-    e.run()
+    svg2g = Svg2G()
+    svg2g.run()
