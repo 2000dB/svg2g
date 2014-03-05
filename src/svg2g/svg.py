@@ -26,8 +26,6 @@ class SvgIgnored(SvgEntity):
 class SvgPath(SvgEntity):
     """
     An SVG entity which will render a segmented line.
-
-    TODO: clean this up
     """
     def __init__(self, node, node_transform):
         d = node.get('d')
@@ -327,20 +325,16 @@ class SvgParser(object):
                 [0.0, -0.28222, (height / 2.0)]
             ])
 
-    # TODO: center this thing
     def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):
         """
         Recursively traverse the svg file to plot out all of the
-        paths.    The function keeps track of the composite transformation
+        paths. The function keeps track of the composite transformation
         that should be applied to each path.
 
         This function handles path, group, line, rect, polyline, polygon,
         circle, ellipse and use (clone) elements. Notable elements not
-        handled include text.    Unhandled elements should be converted to
+        handled include text. Unhandled elements should be converted to
         paths in Inkscape.
-
-        TODO: There's a lot of inlined code in the eggbot version of this
-        that would benefit from the Entities method of dealing with things.
         """
         for node in nodeList:
             # Ignore invisible nodes
