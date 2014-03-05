@@ -1,62 +1,28 @@
-MakerBot Unicorn G-Code Output for Inkscape
-===========================================
+svg2g: Convert SVG to GCode 
+===========================
 
-**NOTE:** This code has been heavily modified by [Christopher Groskopf](http://github.com/onyxfish) and this README is currently out of date. Files in `src/lib` are from the Inkscape distribution and contain their own licenses.
+**NOTE:** This code is nearly-complete rewrite of [MakerBot Unicorn G-Code Output for Inkscape](http://github.com/martymcguire/inkscape-unicorn) by [Marty McGuire](http://github.com/martymcguire). It continues to support Inkscape, but has been refactored to also work on the command line.
 
-This is an Inkscape extension that allows you to save your Inkscape drawings as
-G-Code files suitable for plotting with the [MakerBot Unicorn Pen Plotter](http://store.makerbot.com/makerbot-unicorn-pen-plotter-kit.html).
+Using on the command line
+=========================
 
-Author: [Marty McGuire](http://github.com/martymcguire)
+See `test.sh` for a temporary example.
 
-Website: [http://github.com/martymcguire/inkscape-unicorn](http://github.com/martymcguire/inkscape-unicorn)
-
-Credits
-=======
-
-* Marty McGuire pulled this all together into an Inkscape extension.
-* [Inkscape](http://www.inkscape.org/) is an awesome open source vector graphics app.
-* [Scribbles](https://github.com/makerbot/Makerbot/tree/master/Unicorn/Scribbles%20Scripts) is the original DXF-to-Unicorn Python script.
-* [The Egg-Bot Driver for Inkscape](http://code.google.com/p/eggbotcode/) provided inspiration and good examples for working with Inkscape's extensions API.
-
-Install
-=======
+Install to Inkscape
+===================
 
 Copy the contents of `src/` to your Inkscape `extensions/` folder.
 
 Typical locations include:
 
-* OS X - `/Applications/Inkscape.app/Contents/Resources/extensions`
+* OSX - `/Applications/Inkscape.app/Contents/Resources/extensions`
 * Linux - `/usr/share/inkscape/extensions`
 * Windows - `C:\Program Files\Inkscape\share\extensions`
 
-Usage
-=====
+LICENSE
+=======
 
-* Size and locate your image appropriately:
-	* The CupCake CNC build platform size is 100mm x 100mm.
-	* Setting units to **mm** in Inkscape makes it easy to size your drawing.
-	* The extension will automatically attempt to center everything.
-* Convert all text to paths:
-	* Select all text objects.
-	* Choose **Path | Object to Path**.
-* Save as G-Code:
-	* **File | Save a Copy**.
-	* Select **MakerBot Unicorn G-Code (\*.gcode)**.
-	* Save your file.
-* Preview
-	* For OS X, [Pleasant3D](http://www.pleasantsoftware.com/developer/pleasant3d/index.shtml) is great for this.
-	* For other operating systems... I don't know!
-* Print!
-	* Open your `.gcode` file in [ReplicatorG](http://replicat.org/)
-	* Set up your Unicorn and pen.
-	* Center your build platform.
-	* Click the **Build** button!
+This source is modified and released under the terms of the GPLv2 open source license. See `LICENSE` for details. 
 
-TODOs
-=====
+Some source files in the `src/lib` directory are pulled from the [Inkscape](http://www.inkscape.org/) project. See their headers for individual specific license details.
 
-* Rename `*PolyLine` stuff to `*Path` to be less misleading.
-* Formalize "home" to be a reasonable place to change pages/pens.
-* Parameterize smoothness for curve approximation.
-* Use native curve G-Codes instead of converting to paths?
-* Include example templates?
