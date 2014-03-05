@@ -116,9 +116,6 @@ class Unicorn(object):
 
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
-    def output(self):
-        self.context.generate()
-
     def parse(self, path):
         try:
             stream = open(path, 'r')
