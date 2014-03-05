@@ -10,6 +10,22 @@ from unicorn.svg_parser import SvgLayerChange, SvgParser, SvgPath
 
 class Unicorn(object):
     def __init__(self):
+        """
+        Setup GCode writer and SVG parser.
+        """
+        self.get_options()
+
+        self.gcode = GCodeBuilder(self.options)
+        
+        # TODO: use actual argument
+        document = self.parse_xml(sys.argv[-1]) 
+        
+        self.parser = SvgParser(document.getroot())
+
+    def get_options(self):
+        """
+        Get options from the command line.
+        """
         self.OptionParser = optparse.OptionParser(usage="usage: %prog [options] SVGfile")
 
         self.OptionParser.add_option('--pen-up-angle',
@@ -109,14 +125,10 @@ class Unicorn(object):
 
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
-        self.gcode = GCodeBuilder(self.options)
-        
-        # TODO: use actual argument
-        document = self.parse(sys.argv[-1]) 
-        
-        self.parser = SvgParser(document.getroot())
-
-    def parse(self, path):
+    def parse_xml(self, path):
+        """
+        Parse the XML input.
+        """
         try:
             stream = open(path, 'r')
         except:
@@ -129,6 +141,9 @@ class Unicorn(object):
         return document
 
     def process_svg_entity(self, svg_entity):
+        """
+        Generate GCode for a given SVG entity.
+        """
         if isinstance(svg_entity, SvgPath):
             len_segments = len(svg_entity.segments)
 
@@ -138,7 +153,10 @@ class Unicorn(object):
         elif isinstance(svg_entity, SvgLayerChange):
             self.gcode.change_layer(svg_entity.layer_name)
 
-    def effect(self):
+    def run(self):
+        """
+        Execute the parser and generate the GCode.
+        """
         self.parser.parse()
 
         map(self.process_svg_entity, self.parser.entities)
@@ -147,4 +165,4 @@ class Unicorn(object):
 
 if __name__ == '__main__': 
     e = Unicorn()
-    e.effect()
+    e.run()
