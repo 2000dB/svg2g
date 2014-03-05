@@ -6,7 +6,7 @@ import sys
 from lxml import etree
 
 from unicorn.context import GCodeBuilder
-from unicorn.svg_parser import SvgParser
+from unicorn.svg_parser import SvgLayerChange, SvgParser, SvgPath
 
 class Unicorn(object):
     def __init__(self):
@@ -109,6 +109,13 @@ class Unicorn(object):
 
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
+        self.gcode = GCodeBuilder(self.options)
+        
+        # TODO: use actual argument
+        document = self.parse(sys.argv[-1]) 
+        
+        self.parser = SvgParser(document.getroot())
+
     def parse(self, path):
         try:
             stream = open(path, 'r')
@@ -121,16 +128,20 @@ class Unicorn(object):
 
         return document
 
+    def process_svg_entity(self, svg_entity):
+        if isinstance(svg_entity, SvgPath):
+            len_segments = len(svg_entity.segments)
+
+            for i, points in enumerate(svg_entity.segments):
+                self.gcode.label('Polyline segment %i/%i' % (i + 1, len_segments))
+                self.gcode.draw_polyline(points)
+        elif isinstance(svg_entity, SvgLayerChange):
+            self.gcode.change_layer(svg_entity.layer_name)
+
     def effect(self):
-        self.gcode = GCodeBuilder(self.options)
+        self.parser.parse()
 
-        document = self.parse(sys.argv[-1]) 
-
-        parser = SvgParser(document.getroot())
-        parser.parse()
-
-        for entity in parser.entities:
-            entity.get_gcode(self.gcode)
+        map(self.process_svg_entity, self.parser.entities)
 
         sys.stdout.write(self.gcode.build())
 

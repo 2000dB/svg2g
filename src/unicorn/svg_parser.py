@@ -16,12 +16,6 @@ class SvgEntity(object):
     def __init__(self, node, node_transform):
         pass
 
-    def __str__(self):
-        return 'SvgEntity'
-
-    def get_gcode(self, context):
-        return
-
 class SvgIgnored(SvgEntity):
     """
     An SVG entity which will not be rendered.
@@ -29,9 +23,6 @@ class SvgIgnored(SvgEntity):
     def __init__(self, node, node_transform):
         self.tag = node.tag
     
-    def __str__(self):
-        return 'SvgIgnored: "%s" tag' % self.tag
-
 class SvgPath(SvgEntity):
     """
     An SVG entity which will render a segmented line.
@@ -59,19 +50,6 @@ class SvgPath(SvgEntity):
                 points.append((csp[1][0], csp[1][1]))
             
             self.segments.append(points)
-
-    def __str__(self):
-        return 'Polyline consisting of %d segments.' % len(self.segments)
-
-    def get_gcode(self, context):
-        """
-        Emit gcode for drawing polyline
-        """
-        len_segments = len(self.segments)
-
-        for i, points in enumerate(self.segments):
-            context.label('Polyline segment %i/%i' % (i + 1, len_segments))
-            context.draw_polyline(points)
 
     def subdivideCubicPath(self, sp, flat, i=1):
         """
@@ -244,17 +222,9 @@ class SvgText(SvgIgnored):
 class SvgLayerChange(SvgEntity):
     """
     An SVG entity that stands in for a delay between layer changes.
-
-    TODO: make a proper entity
     """
     def __init__(self, layer_name):
         self.layer_name = layer_name
-
-    def __str__(self):
-        return 'SvgLayerChange'
-
-    def get_gcode(self, context):
-        context.change_layer(self.layer_name)
 
 class SvgParser(object):
     """
