@@ -6,7 +6,7 @@ import sys
 from lxml import etree
 
 from svg2g.gcode import GCodeBuilder
-from svg2g.svg_parser import SvgLayerChange, SvgParser, SvgPath
+from svg2g.svg import SvgLayerChange, SvgParser, SvgPath
 
 class Unicorn(object):
     def __init__(self):
