@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from lxml import etree
+
 from lib import bezmisc 
 from lib import cspsubdiv
 from lib import cubicsuperpath
@@ -113,7 +115,7 @@ class SvgPath(SvgEntity):
             sp[i:1] = [p]
 
     def new_path_from_node(self, node):
-        newpath = inkex.etree.Element(inkex.addNS('path', 'svg'))
+        newpath = etree.Element(inkex.addNS('path', 'svg'))
 
         node_style = node.get('style')
         
