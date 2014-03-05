@@ -5,7 +5,7 @@ import sys
 
 from lxml import etree
 
-from unicorn.context import GCodeContext
+from unicorn.context import GCodeWriter
 from unicorn.svg_parser import SvgParser
 
 class Unicorn(object):
@@ -129,7 +129,7 @@ class Unicorn(object):
         return document
 
     def effect(self):
-        self.context = GCodeContext(self.options)
+        self.context = GCodeWriter(self.options)
 
         document = self.parse(sys.argv[-1]) 
 

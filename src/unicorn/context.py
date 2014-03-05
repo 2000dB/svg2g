@@ -2,7 +2,10 @@
 
 import sys
 
-class GCodeContext:
+class GCodeWriter:
+    """
+    Compile GCode instructions.
+    """
     def __init__(self, options):
         self.config = vars(options)
         self.drawing = False
@@ -124,9 +127,31 @@ class GCodeContext:
 
         self.last = (x, y)
 
+    def label(self, text):
+        self.codes.append('(' + text + ')')
+
+    def draw_polyline(self, points):
+        """
+        Draw a polyline (series of points).
+        """
+        start = points[0]
+
+        self.go_to_point(start[0],start[1])
+        self.start()
+
+        for point in points[1:]:
+            self.draw_to_point(point[0],point[1])
+            self.last = point
+
+        self.stop()
+        self.codes.append('')
+
+    def change_layer(self, name):
+        self.codes.append('M01 (Plotting layer "%s")' % name)
+
     def generate(self):
         """
-        Output compiled Godee to console. 
+        Output compiled GCode to console. 
         """
         if self.config['continuous'] == 'true':
             self.config['num_copies'] = 1

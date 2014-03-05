@@ -61,26 +61,17 @@ class SvgPath(SvgEntity):
             self.segments.append(points)
 
     def __str__(self):
-		return 'Polyline consisting of %d segments.' % len(self.segments)
+        return 'Polyline consisting of %d segments.' % len(self.segments)
 
-    def get_gcode(self,context):
-		"""
+    def get_gcode(self, context):
+        """
         Emit gcode for drawing polyline
         """
-		for points in self.segments:
-			start = points[0]
+        len_segments = len(self.segments)
 
-			context.codes.append('(' + str(self) + ')')
-			context.go_to_point(start[0],start[1])
-			context.start()
-
-			for point in points[1:]:
-				context.draw_to_point(point[0],point[1])
-				context.last = point
-
-			context.stop()
-			context.codes.append('')
-
+        for i, points in enumerate(self.segments):
+            context.label('Polyline segment %i/%i' % (i + 1, len_segments))
+            context.draw_polyline(points)
 
     def subdivideCubicPath(self, sp, flat, i=1):
         """
@@ -262,8 +253,8 @@ class SvgLayerChange(SvgEntity):
     def __str__(self):
         return 'SvgLayerChange'
 
-    def get_gcode(self,context):
-        context.codes.append('M01 (Plotting layer "%s")' % self.layer_name)
+    def get_gcode(self, context):
+        context.change_layer(self.layer_name)
 
 class SvgParser(object):
     """
