@@ -5,7 +5,7 @@ import sys
 
 from lxml import etree
 
-from unicorn.context import GCodeWriter
+from unicorn.context import GCodeBuilder
 from unicorn.svg_parser import SvgParser
 
 class Unicorn(object):
@@ -95,13 +95,6 @@ class Unicorn(object):
             dest='num_copies',
             default='1')
 
-        self.OptionParser.add_option('--continuous',
-            action='store',
-            type='string',
-            dest='continuous',
-            default='false',
-            help='Plot continuously until stopped.')
-
         self.OptionParser.add_option('--pause-on-layer-change',
             action='store',
             type='string',
@@ -129,7 +122,7 @@ class Unicorn(object):
         return document
 
     def effect(self):
-        self.context = GCodeWriter(self.options)
+        self.gcode = GCodeBuilder(self.options)
 
         document = self.parse(sys.argv[-1]) 
 
@@ -137,9 +130,9 @@ class Unicorn(object):
         parser.parse()
 
         for entity in parser.entities:
-            entity.get_gcode(self.context)
+            entity.get_gcode(self.gcode)
 
-        self.context.generate()
+        sys.stdout.write(self.gcode.build())
 
 if __name__ == '__main__': 
     e = Unicorn()

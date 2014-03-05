@@ -2,11 +2,12 @@
 
 import sys
 
-class GCodeWriter:
+class GCodeBuilder:
     """
-    Compile GCode instructions.
+    Build a GCode instruction set.
     """
     def __init__(self, options):
+        self.codes = []
         self.config = vars(options)
         self.drawing = False
         self.last = None
@@ -78,8 +79,6 @@ class GCodeWriter:
             'M30 (Plot again?)'
         ]
 
-        self.codes = []
-
     def start(self):
         """
         Start drawing.
@@ -128,6 +127,9 @@ class GCodeWriter:
         self.last = (x, y)
 
     def label(self, text):
+        """
+        Write a text label/comment into the output.
+        """
         self.codes.append('(' + text + ')')
 
     def draw_polyline(self, points):
@@ -144,43 +146,34 @@ class GCodeWriter:
             self.last = point
 
         self.stop()
-        self.codes.append('')
 
     def change_layer(self, name):
+        """
+        Change layer being drawn.
+        """
         self.codes.append('M01 (Plotting layer "%s")' % name)
 
-    def generate(self):
+    def build(self):
         """
-        Output compiled GCode to console. 
+        Build complete GCode and return as string. 
         """
-        if self.config['continuous'] == 'true':
-            self.config['num_copies'] = 1
+        commands = [] 
 
-        codesets = [self.preamble]
+        commands.extend(self.preamble)
 
-        if (self.config['continuous'] == 'true' or self.config['num_copies'] > 1):
-            codesets.append(self.sheet_header)
-        elif self.config['register_pen'] == 'true':
-            codesets.append(self.registration)
+        if (self.config['num_copies'] > 1):
+            commands.extend(self.sheet_header)
         
-        codesets.append(self.codes)
+        if self.config['register_pen'] == 'true':
+            commands.extend(self.registration)
         
-        if (self.config['continuous'] == 'true' or self.config['num_copies'] > 1):
-            codesets.append(self.sheet_footer)
-
-        if self.config['continuous'] == 'true':
-            codesets.append(self.loop_forever)
-
-            for codeset in codesets:
-                for line in codeset:
-                    sys.stdout.write(line + '\n')
+        commands.extend(self.codes)
+        
+        if (self.config['num_copies'] > 1):
+            commands.extend(self.sheet_footer)
+            commands.extend(self.postscript)
+            commands = commands * self.config['num_copies']
         else:
-            for p in range(0, self.config['num_copies']):
-                for codeset in codesets:
-                    for line in codeset:
-                        sys.stdout.write(line + '\n')
+            commands.extend(self.postscript)
 
-                for line in self.postscript:
-                    sys.stdout.write(line + '\n')
-
-
+        return '\n'.join(commands)
