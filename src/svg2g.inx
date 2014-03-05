@@ -5,7 +5,7 @@
     <id>com.makerbot.unicorn.gcode</id>
 
     <dependency type="extension">org.inkscape.output.svg.inkscape</dependency>
-    <dependency type="executable" location="extensions">unicorn.py</dependency>
+    <dependency type="executable" location="extensions">svg2g.py</dependency>
     <dependency type="executable" location="extensions">inkex.py</dependency>
 
     <param name="tab" type="notebook">
@@ -69,6 +69,6 @@ More Info: http://github.com/martymcguire/inkscape-unicorn/</_param>
     </output>
 
     <script>
-        <command reldir="extensions" interpreter="python">unicorn.py</command>
+        <command reldir="extensions" interpreter="python">svg2g.py</command>
     </script>
 </inkscape-extension>

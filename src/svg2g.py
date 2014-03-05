@@ -5,8 +5,8 @@ import sys
 
 from lxml import etree
 
-from unicorn.gcode import GCodeBuilder
-from unicorn.svg_parser import SvgLayerChange, SvgParser, SvgPath
+from svg2g.gcode import GCodeBuilder
+from svg2g.svg_parser import SvgLayerChange, SvgParser, SvgPath
 
 class Unicorn(object):
     def __init__(self):
@@ -117,6 +117,13 @@ class Unicorn(object):
             dest='pause_on_layer_change',
             default='false',
             help='Pause on layer changes.')
+
+        # Option required for inkscape support
+        self.OptionParser.add_option('--tab',
+            action='store',
+            type='string',
+            dest='tag',
+            help='Option required for Inkscape support.')
 
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
