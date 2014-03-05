@@ -30,38 +30,44 @@ class SvgPath(SvgEntity):
     def __init__(self, node, node_transform):
         d = node.get('d')
 
-        if len(simplepath.parsePath(d)) == 0:
+        path = simplepath.parsePath(d)
+
+        if len(path) == 0:
             return
         
-        p = cubicsuperpath.parsePath(d)
-        simpletransform.applyTransformToPath(node_transform, p)
+        path = cubicsuperpath.CubicSuperPath(path)
+        simpletransform.applyTransformToPath(node_transform, path)
 
-        # p is now a list of lists of cubic beziers [ctrl p1, ctrl p2, endpoint]
-        # where the start-point is the last point in the previous segment
+        # path is now a list of lists of cubic beziers [ctrl p1, ctrl p2, endpoint]
+        # where the start-point is the endpoint of the previous segment
         self.segments = []
         
-        for sp in p:
+        for cubic_bezier_path in path:
             points = []
-            self._subdivide_cubic_path(sp, 0.2)    # TODO: smoothness preference
             
-            for csp in sp:
-                points.append((csp[1][0], csp[1][1]))
+            self._subdivide_cubic_bezier_path(cubic_bezier_path, 0.2)    # TODO: smoothness preference
+
+            for p1, p2, endpoint in cubic_bezier_path:
+                points.append(p2)
             
             self.segments.append(points)
 
     def _compute_max_distance(self, points):
-        ((p0x,p0y), (p1x,p1y), (p2x,p2y), (p3x,p3y)) = points
+        """
+        Compute the max distance between four points.
+        """
+        ((p0x, p0y), (p1x, p1y), (p2x, p2y), (p3x, p3y)) = points
 
-        p0 = ffgeom.Point(p0x,p0y)
-        p1 = ffgeom.Point(p1x,p1y)
-        p2 = ffgeom.Point(p2x,p2y)
-        p3 = ffgeom.Point(p3x,p3y)
+        p0 = ffgeom.Point(p0x, p0y)
+        p1 = ffgeom.Point(p1x, p1y)
+        p2 = ffgeom.Point(p2x, p2y)
+        p3 = ffgeom.Point(p3x, p3y)
 
-        s1 = ffgeom.Segment(p0,p3)
+        s1 = ffgeom.Segment(p0, p3)
 
         return max(s1.distanceToPoint(p1), s1.distanceToPoint(p2))
 
-    def _subdivide_cubic_path(self, sp, flat, i=1):
+    def _subdivide_cubic_bezier_path(self, cubic_bezier_path, flat):
         """
         Break up a bezier curve into smaller curves, each of which
         is approximately a straight line within a given tolerance
@@ -71,15 +77,24 @@ class SvgPath(SvgEntity):
         The recursive call has been rewritten because it caused
         recursion-depth errors on complicated line segments.
         """
+        i = 1
+
         while True:
             while True:
-                if i >= len( sp ):
+                if i >= len(cubic_bezier_path):
                     return
 
-                p0 = sp[i - 1][1]
-                p1 = sp[i - 1][2]
-                p2 = sp[i][0]
-                p3 = sp[i][1]
+                # First bezier, first control point 
+                p0 = cubic_bezier_path[i - 1][1]
+
+                # First bezier, endpoint
+                p1 = cubic_bezier_path[i - 1][2]
+
+                # Second bezier, Second control point
+                p2 = cubic_bezier_path[i][0]
+
+                # Second bezier, first control point
+                p3 = cubic_bezier_path[i][1]
 
                 b = (p0, p1, p2, p3)
 
@@ -89,10 +104,10 @@ class SvgPath(SvgEntity):
                 i += 1
 
             one, two = bezmisc.beziersplitatt(b, 0.5)
-            sp[i - 1][2] = one[1]
-            sp[i][0] = two[2]
+            cubic_bezier_path[i - 1][2] = one[1]
+            cubic_bezier_path[i][0] = two[2]
             p = [one[2], one[3], two[1]]
-            sp[i:1] = [p]
+            cubic_bezier_path[i:1] = [p]
 
     def new_path_from_node(self, node):
         newpath = etree.Element(inkex.addNS('path', 'svg'))

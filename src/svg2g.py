@@ -164,7 +164,9 @@ class Svg2G(object):
 
         map(self.process_svg_entity, self.parser.entities)
 
-        sys.stdout.write(self.gcode.build())
+        output = self.gcode.build()
+
+        sys.stdout.write(output)
 
 if __name__ == '__main__': 
     svg2g = Svg2G()
