@@ -5,7 +5,7 @@ import sys
 
 from lxml import etree
 
-from unicorn.context import GCodeBuilder
+from unicorn.gcode import GCodeBuilder
 from unicorn.svg_parser import SvgLayerChange, SvgParser, SvgPath
 
 class Unicorn(object):
