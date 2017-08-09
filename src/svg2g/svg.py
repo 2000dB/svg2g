@@ -346,8 +346,8 @@ class SvgParser(object):
         self.recursivelyTraverseSvg(
             self.svg,
             [
-                [1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0]
+                [1.0, 0.0, 0],
+                [0.0, -1.0, height]
             ])
 
     def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):
