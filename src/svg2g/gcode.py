@@ -11,65 +11,53 @@ class GCodeBuilder:
         self.config = vars(options)
         self.drawing = False
         self.last = None
-
+        
         self.preamble = [
-            '(preamble)'
-            '(Scribbled @ %(xy_feedrate).2f)' % self.config,
-            '( %s )' % ' '.join(sys.argv),
-            'G21 (metric ftw)',
-            'G90 (absolute mode)',
-            'G92 X%(x_home).2f Y%(y_home).2f Z%(z_height).2f (you are here)' % self.config,
-            '(/preamble)'
+            '(setup)',
+            # if config requires homing
+            'G28 (home axes)',
+            'G1 F%(homing_feedrate)0.2F' % self.config,
+            'M83 (Relative E axis - in our case the paper feed return)',
+            'G92 X64.0',
+            'G1 X0.0 E64.0',
+            'G1 F%(xy_feedrate)0.2F' % self.config,
+            'G92 X%(x_home).2f Y%(y_home).2f Z%(z_home).2f (set home coordinates)' % (self.config),
+            'G1 X0 Y0 (go to 0 position for drawing since the limit switches are currently set to be at the max)',
+            'G92 X0 Y0',
+            '(/setup done, can now draw)',
+            ''
         ]
 
         self.postscript = [
-            '(postscript)',
-            'M300 S%(pen_up_angle)0.2F (pen up)' % self.config,
-            'G4 P%(stop_delay)d (wait %(stop_delay)dms)' % self.config,
-            'M300 S255 (turn off servo)',
-            'G1 X0 Y0 F%(xy_feedrate)0.2F' % self.config,
-            'G1 Z%(finished_height)0.2F F%(z_feedrate)0.2F (go up to finished level)' % self.config,
-            'G1 X%(x_home)0.2F Y%(y_home)0.2F F%(xy_feedrate)0.2F (go home)' % (self.config),
-            'M18 (drives off)',
-            '(/postscript)'
+            '',
+            '(end of drawing)',
+            'G1 F%(homing_feedrate).2f' % self.config,
+            'G1 X0.0',
+            'G1 X%(x_offset).2f' % self.config,
+            'G91',
+            'G1 X%(paper_length).2f' % self.config,
+            'G90'
+            'G1 Y%(y_home)0.2f Z0 (go home and cut paper)' % self.config,
+            'G1 Z%(z_home)0.2f' % self.config,
+            '(/done)',
+            ''
         ]
 
         self.registration = [
+            '',
             '(registration)',
-            'M300 S%(pen_down_angle)d (pen down)' % self.config,
-            'G4 P%(start_delay)d (wait %(start_delay)dms)' % self.config,
-            'M300 S%(pen_up_angle)d (pen up)' % self.config,
-            'G4 P%(stop_delay)d (wait %(stop_delay)dms)' % self.config,
-            'M18 (disengage drives)',
-            'M01 (Was registration test successful?)',
-            'M17 (engage drives if YES, and continue)',
+            # Lower pen at the bottom margin, raise, move to top margin and lower again. Go back to 0
             '(/registration)'
         ]
 
         self.sheet_header = [
             '(sheet header)',
-            'G92 X%(x_home).2f Y%(y_home).2f Z%(z_height).2f (you are here)' % self.config,
+            'G92 X%(x_home).2f Y%(y_home).2f Z%(z_home).2f (you are here)' % self.config,
         ]
 
         self.sheet_header.append('(/sheet header)')
 
         self.sheet_footer = [
-            '(sheet footer)',
-            'M300 S%(pen_up_angle)d (pen up)' % self.config,
-            'G4 P%(stop_delay)d (wait %(stop_delay)dms)' % self.config,
-            'G91 (relative mode)',
-            'G0 Z15 F%(z_feedrate)0.2f' % self.config,
-            'G90 (absolute mode)',
-            'G0 X%(x_home)0.2f Y%(y_home)0.2f F%(xy_feedrate)0.2f' % self.config,
-            'M01 (Have you retrieved the print?)',
-            '(machine halts until "okay")',
-            'G4 P%(start_delay)d (wait %(start_delay)dms)' % self.config,
-            'G91 (relative mode)',
-            'G0 Z-15 F%(z_feedrate)0.2f (return to start position of current sheet)' % self.config,
-            'G0 Z-0.01 F%(z_feedrate)0.2f (move down one sheet)' % self.config,
-            'G90 (absolute mode)',
-            'M18 (disengage drives)',
-            '(/sheet footer)',
         ]
 
         self.loop_forever = [
@@ -78,18 +66,20 @@ class GCodeBuilder:
 
     def start(self):
         """
-        Start drawing.
+        Start drawing a shape
         """
-        self.codes.append('M300 S%(pen_down_angle)0.2F (pen down)' % self.config)
-        self.codes.append('G4 P%(start_delay)d (wait %(start_delay)dms)' % self.config)
+        self.codes.append('(lower pen)')
+        self.codes.append('M5 M400 M3 S100')
+        self.codes.append('G4 P%(stop_delay).2f' % self.config)
         self.drawing = True
 
     def stop(self):
         """
-        Stop drawing.
+        Stop drawing a shape
         """
-        self.codes.append('M300 S%(pen_up_angle)0.2F (pen up)' % self.config)
-        self.codes.append('G4 P%(stop_delay)d (wait %(stop_delay)dms)' % self.config)
+        self.codes.append('(raise pen)')
+        self.codes.append('M3 S100 M400 M5') 
+        self.codes.append('G4 P%(stop_delay).2f' % self.config)
         self.drawing = False
 
     def go_to_point(self, x, y, stop=False):
@@ -105,7 +95,11 @@ class GCodeBuilder:
             if self.drawing: 
                 self.stop();
 
-            self.codes.append('G1 X%.2f Y%.2f F%.2f' % (x, y, self.config['xy_feedrate']))
+            if self.last:
+                distX = abs(self.last[0] - x)
+            else:
+                distX = 0.0
+            self.codes.append('G1 X%0.2f Y%0.2f E%0.2f F%0.2f' % (x, y, distX, self.config['xy_feedrate']))
 
         self.last = (x, y)
 
@@ -119,7 +113,9 @@ class GCodeBuilder:
         if self.drawing == False:
             self.start()
 
-        self.codes.append('G1 X%0.2f Y%0.2f F%0.2f' % (x, y, self.config['xy_feedrate']))
+        distX = abs(self.last[0] - x)
+            
+        self.codes.append('G1 X%0.2f Y%0.2f E%0.2f F%0.2f' % (x, y, distX, self.config['xy_feedrate']))
 
         self.last = (x, y)
 

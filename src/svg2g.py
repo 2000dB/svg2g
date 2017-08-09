@@ -28,19 +28,19 @@ class Svg2G(object):
         """
         self.OptionParser = optparse.OptionParser(usage='usage: %prog [options] input.svg')
 
-        self.OptionParser.add_option('--pen-up-angle',
+        self.OptionParser.add_option('--xoffset',
             action='store',
             type='float',
-            dest='pen_up_angle',
-            default='50.0',
-            help='Pen up angle')
+            dest='x_offset',
+            default='64.0',
+            help='X Offset')
 
-        self.OptionParser.add_option('--pen-down-angle',
+        self.OptionParser.add_option('--paper-length',
             action='store',
             type='float',
-            dest='pen_down_angle',
-            default='30.0',
-            help='Pen down angle')
+            dest='paper_length',
+            default='100.0',
+            help='Final cut paper length')
 
         self.OptionParser.add_option('--start-delay',
             action='store', 
@@ -63,19 +63,19 @@ class Svg2G(object):
             default='3500.0',
             help='XY axes feedrate in millimeters per minute')
 
-        self.OptionParser.add_option('--z-feedrate',
+        self.OptionParser.add_option('--homing-feedrate',
             action='store',
             type='float',
-            dest='z_feedrate',
-            default='150.0',
-            help='Z axis feedrate in millimeters per minute')
+            dest='homing_feedrate',
+            default='1000.0',
+            help='Feedrate used when doing positioning movement')
 
-        self.OptionParser.add_option('--z-height',
+        self.OptionParser.add_option('--z-home',
             action='store',
             type='float',
-            dest='z_height',
+            dest='z_home',
             default='0.0',
-            help='Z axis print height in millimeters')
+            help='Z axis (paper home position')
 
         self.OptionParser.add_option('--finished-height',
             action='store',
@@ -88,7 +88,7 @@ class Svg2G(object):
             action='store',
             type='string',
             dest='register_pen',
-            default='true',
+            default='false',
             help='Add pen registration check(s)')
 
         self.OptionParser.add_option('--x-home',

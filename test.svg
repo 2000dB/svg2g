@@ -9,12 +9,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="744.09448819"
-   height="1052.3622047"
+   width="100mm"
+   height="80mm"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.2 r9819"
-   sodipodi:docname="test.gcode">
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="test.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -24,17 +24,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.175"
-     inkscape:cx="375"
-     inkscape:cy="520"
-     inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:zoom="1.4"
+     inkscape:cx="-4.3917201"
+     inkscape:cy="348.57143"
+     inkscape:document-units="mm"
+     inkscape:current-layer="svg2"
      showgrid="false"
-     inkscape:window-width="717"
-     inkscape:window-height="600"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1916"
+     inkscape:window-height="1155"
+     inkscape:window-x="4"
+     inkscape:window-y="1"
+     inkscape:window-maximized="1"
+     units="mm" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -51,10 +52,19 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 245.71429,338.07647 182.85714,0 -85.71429,142.85714 z"
-       id="path2985"
-       inkscape:connector-curvature="0" />
+    <rect
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:5.76668406;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect3353"
+       width="40"
+       height="40"
+       x="0.0"
+       y="20" />
   </g>
+  <ellipse
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:9.10492516;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path3334"
+     cx="20.0"
+     cy="40.0"
+     rx="10.0"
+     ry="10.0" />
 </svg>

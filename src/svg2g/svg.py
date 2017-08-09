@@ -45,7 +45,7 @@ class SvgPath(SvgEntity):
         for cubic_bezier_path in path:
             points = []
             
-            self._subdivide_cubic_bezier_path(cubic_bezier_path, 0.2)    # TODO: smoothness preference
+            self._subdivide_cubic_bezier_path(cubic_bezier_path, 0.01)    # TODO: smoothness preference
 
             for p1, p2, endpoint in cubic_bezier_path:
                 points.append(p2)
@@ -292,6 +292,9 @@ class SvgParser(object):
         elif attr[-1:] == '%':
             unit = '%'
             attr = attr[:-1]
+        elif attr[-2:] == 'mm':
+            attr = attr[:-2]
+            unit = 'mm'
         
         try:
             value = float(attr)
@@ -307,7 +310,7 @@ class SvgParser(object):
         no units (''), units of pixels ('px'), and units of percentage ('%').
         """
         attr = self.svg.get(name)
-        
+
         if attr:
             value, unit = self.parseLengthWithUnits(attr)
             
@@ -315,9 +318,13 @@ class SvgParser(object):
                 # Couldn't parse the value
                 return None
             elif (unit == '') or (unit == 'px' ):
+                # Should throw and error and exit because we want to only deal with mm
                 return value
             elif unit == '%':
+                # Should throw and error and exit because we want to only deal with mm
                 return float(default) * value / 100.0
+            elif unit == 'mm':
+                return value
             else:
                 # Unsupported units
                 return None
@@ -330,14 +337,17 @@ class SvgParser(object):
         Parse the SVG data into entities.
         """
         # 0.28222 scale determined by comparing pixels-per-mm in a default Inkscape file.
-        width = self.getLength('width', 354) * 0.28222
-        height = self.getLength('height', 354) * 0.28222
+        #width = self.getLength('width', 354) * 0.28222
+        #height = self.getLength('height', 354) * 0.28222
+
+        width = self.getLength('width', 100)
+        height = self.getLength('height', 80)
 
         self.recursivelyTraverseSvg(
             self.svg,
             [
-                [0.28222, 0.0, -(width / 2.0)],
-                [0.0, -0.28222, (height / 2.0)]
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0]
             ])
 
     def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):
