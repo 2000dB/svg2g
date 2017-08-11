@@ -33,14 +33,14 @@ class Svg2G(object):
             type='float',
             dest='x_offset',
             default='64.0',
-            help='X Offset')
+            help='X Offset: Offset in mm between the paper cutter and where the paper should at the start of the writing process.')
 
         self.OptionParser.add_option('--paper-length',
             action='store',
             type='float',
             dest='paper_length',
             default='100.0',
-            help='Final cut paper length')
+            help='Final length of the paper to be cut in mm')
 
         self.OptionParser.add_option('--start-delay',
             action='store', 
@@ -70,54 +70,26 @@ class Svg2G(object):
             default='1000.0',
             help='Feedrate used when doing positioning movement')
 
-        self.OptionParser.add_option('--z-home',
-            action='store',
-            type='float',
-            dest='z_home',
-            default='0.0',
-            help='Z axis (paper home position')
-
-        self.OptionParser.add_option('--finished-height',
-            action='store',
-            type='float',
-            dest='finished_height',
-            default='0.0',
-            help='Z axis height after printing in millimeters')
-
-        self.OptionParser.add_option('--register-pen',
-            action='store',
-            type='string',
-            dest='register_pen',
-            default='false',
-            help='Add pen registration check(s)')
-
         self.OptionParser.add_option('--x-home',
             action='store',
             type='float',
             dest='x_home',
             default='0.0',
-            help='Starting X position')
+            help='Should be left as 0 for now')
+
+        self.OptionParser.add_option('--z-home',
+            action='store',
+            type='float',
+            dest='z_home',
+            default='0.0',
+            help='Distance between the microswitch and where the paper cutter should end its movement')
 
         self.OptionParser.add_option('--y-home',
             action='store',
             type='float',
             dest='y_home',
             default='0.0',
-            help='Starting Y position')
-
-        self.OptionParser.add_option('--num-copies',
-            action='store',
-            type='int',
-            dest='num_copies',
-            default='1',
-            help='Number of times to repeat the GCode in the output.')
-
-        self.OptionParser.add_option('--pause-on-layer-change',
-            action='store',
-            type='string',
-            dest='pause_on_layer_change',
-            default='false',
-            help='Pause on layer changes')
+            help='Distance between the microswitch and the 0 point, which should be at the very edge of the paper')
 
         # Option required for inkscape support
         self.OptionParser.add_option('--tab',

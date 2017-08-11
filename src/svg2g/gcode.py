@@ -150,9 +150,8 @@ class GCodeBuilder:
         """
         Change layer being drawn.
         """
-        if self.config['pause_on_layer_change']:
-            self.codes.append('M01 (Plotting layer "%s")' % name)
-
+        # pass
+        
     def build(self):
         """
         Build complete GCode and return as string. 
@@ -161,30 +160,10 @@ class GCodeBuilder:
 
         commands.extend(self.preamble())
 
-        if (self.config['num_copies'] > 1):
-            commands.extend(self.sheet_header())
-        
-        if self.config['register_pen'] == 'true':
-            commands.extend(self.registration())
-        
         commands.extend(self.codes)
-
-        # Get the last command, figure out what absolute X we're at
-        # last_x = 0
-        # for i in reversed(commands):
-        #     if 'X' in i:
-        #         g = re.search(r"(?<=X)[^}]\d+\.\d+", i)
-        #         if g:
-        #             last_x = float(g.group())
-        #         break
             
         self.end_paper_to_feed = self.config['x_offset'] + self.config['paper_length']
 
-        if (self.config['num_copies'] > 1):
-            commands.extend(self.sheet_footer())
-            commands.extend(self.postscript())
-            commands = commands * self.config['num_copies']
-        else:
-            commands.extend(self.postscript())
+        commands.extend(self.postscript())
 
         return '\n'.join(commands)
