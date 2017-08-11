@@ -38,10 +38,6 @@ class GCodeBuilder:
             '(end of drawing)',
             'G1 F%(homing_feedrate).2f' % self.config,
             'G1 X%.2f' % self.end_paper_to_feed,
-            # 'G1 X0.0',
-            # 'G1 X%(x_offset).2f' % self.config,
-            # 'G91',
-            # 'G1 X%(paper_length).2f' % self.config,
             'G90'
             'G1 Y%(y_home)0.2f Z0 (go home and cut paper)' % self.config,
             'G1 Z%(z_home)0.2f' % self.config,
