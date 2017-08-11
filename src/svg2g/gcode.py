@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import re
 
 class GCodeBuilder:
     """
@@ -11,31 +12,36 @@ class GCodeBuilder:
         self.config = vars(options)
         self.drawing = False
         self.last = None
+        self.end_paper_to_feed = 0
         
-        self.preamble = [
+    def preamble(self):
+        return [
             '(setup)',
             # if config requires homing
             'G28 (home axes)',
             'G1 F%(homing_feedrate)0.2F' % self.config,
             'M83 (Relative E axis - in our case the paper feed return)',
-            'G92 X64.0',
-            'G1 X0.0 E64.0',
-            'G1 F%(xy_feedrate)0.2F' % self.config,
+            'G92 X%(x_offset).2f' % self.config,
+            'G1 X0.0 E%(x_offset).2f' % self.config,
+            'G1 E%(x_offset)2.f (just for safety, keep spooling)' % self.config,
             'G92 X%(x_home).2f Y%(y_home).2f Z%(z_home).2f (set home coordinates)' % (self.config),
             'G1 X0 Y0 (go to 0 position for drawing since the limit switches are currently set to be at the max)',
             'G92 X0 Y0',
+            'G1 F%(xy_feedrate)0.2F' % self.config,
             '(/setup done, can now draw)',
             ''
         ]
 
-        self.postscript = [
+    def postscript(self):
+        return [
             '',
             '(end of drawing)',
             'G1 F%(homing_feedrate).2f' % self.config,
-            'G1 X0.0',
-            'G1 X%(x_offset).2f' % self.config,
-            'G91',
-            'G1 X%(paper_length).2f' % self.config,
+            'G1 X%.2f' % self.end_paper_to_feed,
+            # 'G1 X0.0',
+            # 'G1 X%(x_offset).2f' % self.config,
+            # 'G91',
+            # 'G1 X%(paper_length).2f' % self.config,
             'G90'
             'G1 Y%(y_home)0.2f Z0 (go home and cut paper)' % self.config,
             'G1 Z%(z_home)0.2f' % self.config,
@@ -43,24 +49,28 @@ class GCodeBuilder:
             ''
         ]
 
-        self.registration = [
+    def registration(self):
+        return [
             '',
             '(registration)',
             # Lower pen at the bottom margin, raise, move to top margin and lower again. Go back to 0
             '(/registration)'
         ]
 
-        self.sheet_header = [
+    def sheet_header(self):
+        return [
             '(sheet header)',
             'G92 X%(x_home).2f Y%(y_home).2f Z%(z_home).2f (you are here)' % self.config,
         ]
 
         self.sheet_header.append('(/sheet header)')
 
-        self.sheet_footer = [
+    def sheet_footer(self):
+        return[
         ]
-
-        self.loop_forever = [
+    
+    def loop_forever(self):
+        return [
             'M30 (Plot again?)'
         ]
 
@@ -151,23 +161,34 @@ class GCodeBuilder:
         """
         Build complete GCode and return as string. 
         """
-        commands = [] 
+        commands = []
 
-        commands.extend(self.preamble)
+        commands.extend(self.preamble())
 
         if (self.config['num_copies'] > 1):
-            commands.extend(self.sheet_header)
+            commands.extend(self.sheet_header())
         
         if self.config['register_pen'] == 'true':
-            commands.extend(self.registration)
+            commands.extend(self.registration())
         
         commands.extend(self.codes)
-        
+
+        # Get the last command, figure out what absolute X we're at
+        # last_x = 0
+        # for i in reversed(commands):
+        #     if 'X' in i:
+        #         g = re.search(r"(?<=X)[^}]\d+\.\d+", i)
+        #         if g:
+        #             last_x = float(g.group())
+        #         break
+            
+        self.end_paper_to_feed = self.config['x_offset'] + self.config['paper_length']
+
         if (self.config['num_copies'] > 1):
-            commands.extend(self.sheet_footer)
-            commands.extend(self.postscript)
+            commands.extend(self.sheet_footer())
+            commands.extend(self.postscript())
             commands = commands * self.config['num_copies']
         else:
-            commands.extend(self.postscript)
+            commands.extend(self.postscript())
 
         return '\n'.join(commands)
