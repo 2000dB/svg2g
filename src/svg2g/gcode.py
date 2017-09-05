@@ -162,7 +162,7 @@ class GCodeBuilder:
 
         commands.extend(self.codes)
             
-        self.end_paper_to_feed = self.config['x_offset'] + self.config['paper_length']
+        self.end_paper_to_feed = self.config['paper_length']
 
         commands.extend(self.postscript())
 
