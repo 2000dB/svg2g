@@ -272,9 +272,10 @@ class SvgParser(object):
         'text': SvgText
     }
 
-    def __init__(self, svg):
+    def __init__(self, svg, scale=1.0):
         self.svg = svg
         self.entities = []
+        self.scale = scale
 
     def parseLengthWithUnits(self, attr):
         """ 
@@ -336,18 +337,14 @@ class SvgParser(object):
         """
         Parse the SVG data into entities.
         """
-        # 0.28222 scale determined by comparing pixels-per-mm in a default Inkscape file.
-        #width = self.getLength('width', 354) * 0.28222
-        #height = self.getLength('height', 354) * 0.28222
-
         width = self.getLength('width', 100)
         height = self.getLength('height', 80)
 
         self.recursivelyTraverseSvg(
             self.svg,
             [
-                [1.0, 0.0, 0],
-                [0.0, -1.0, height]
+                [self.scale, 0.0, 0],
+                [0.0, -self.scale, height]
             ])
 
     def recursivelyTraverseSvg(self, nodeList, current_transform=[[1.0, 0.0, 0.0], [0.0, -1.0, 0.0]], parent_visibility='visible'):

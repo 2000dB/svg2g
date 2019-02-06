@@ -19,8 +19,8 @@ class Svg2G(object):
         
         # TODO: use actual argument
         document = self.parse_xml(sys.argv[-1]) 
-        
-        self.parser = SvgParser(document.getroot())
+
+        self.parser = SvgParser(document.getroot(), scale=self.options.scaling)
 
     def get_options(self):
         """
@@ -98,6 +98,13 @@ class Svg2G(object):
             dest='tag',
             help='Ignored (required for Inkscape support)')
 
+        self.OptionParser.add_option('--scaling',
+            action='store',
+            type='float',
+            dest='scaling',
+            default='1.0',
+            help='svg scaling (defaut none!)')
+
         self.options, self.args = self.OptionParser.parse_args(sys.argv[1:])
 
     def parse_xml(self, path):
@@ -119,6 +126,7 @@ class Svg2G(object):
         """
         Generate GCode for a given SVG entity.
         """
+        
         if isinstance(svg_entity, SvgPath):
             len_segments = len(svg_entity.segments)
 
